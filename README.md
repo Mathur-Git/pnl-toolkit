@@ -103,11 +103,9 @@ The `Statement` sheet: **A/C summary** (rows 4 to 11), the block copied and sent
 
 ## Setting it up in another folder (e.g. a colleague's)
 
-The toolkit lives at https://github.com/Mathur-Git/pnl-toolkit. Only `start\`, `tools\`, this README and `.gitignore` are in it; `.gitignore` keeps everything else (statements, `data\`, `Backups\`, `PnL Record.xlsx`) on each person's own PC.
+The toolkit lives at https://github.com/Mathur-Git/pnl-toolkit. Only `start\`, `tools\`, this README, `SETUP.md` and the git settings are in it; `.gitignore` keeps everything else (the `.pst`, statements, `data\`, `Backups\`, `PnL Record.xlsx`) on each person's own PC.
 
-1. Needs Python 3 with `pdfplumber` (`pip install pdfplumber`) and Git (`winget install Git.Git`).
-2. New folder: `git clone https://github.com/Mathur-Git/pnl-toolkit.git` and work inside it. A folder already set up from a copy of the toolkit: inside it, `git init -b main`, `git remote add origin https://github.com/Mathur-Git/pnl-toolkit.git`, `git fetch origin`, `git reset --hard origin/main`, `git branch -u origin/main`; this replaces only the toolkit's own files and leaves the statements, ledger and record alone.
-3. Do "Every day" above. The first run makes the folders, reads every statement into a new ledger (about a second each), works out which account is which, and makes `PnL Record.xlsx` from the template, starting on the first statement's date.
+The person puts their Outlook `.pst` export in a `pnl` folder and asks their Claude to fetch the toolkit into it (`git init -b main`, `git remote add origin https://github.com/Mathur-Git/pnl-toolkit.git`, `git fetch origin`, `git reset --hard origin/main`, `git branch -u origin/main`: this adds the toolkit's files and leaves everything else in the folder alone) and follow `SETUP.md`. The first run makes the folders, reads every statement into a new ledger (about a second each), works out which account is which, and makes `PnL Record.xlsx` from the template, starting on the first statement's date.
 
 Account numbers are never typed. A product other than SR3, SR1, ZQ or VX is flagged as unknown: add its statement description to `PRODUCTS` in `tools\ledger.py`.
 
