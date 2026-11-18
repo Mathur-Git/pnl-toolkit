@@ -1,0 +1,13 @@
+# Only the toolkit is shared. Statements, the ledger, the record, backups and notes stay on each PC.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/start/
+!/tools/
+/tools/wedbush-extract/*
+!/tools/wedbush-extract/ltp.py
+!/tools/wedbush-extract/pstlib.py
+__pycache__/
+*.pyc
+~$*
