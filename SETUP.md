@@ -4,7 +4,7 @@ You were asked to fetch this toolkit into a `pnl` folder and follow this file. T
 
 ## 1. Check the tools
 
-Git, Python 3 and `pdfplumber` (`winget install Git.Git`, `pip install pdfplumber` if missing). Nothing else is needed.
+Git, Python 3, `pdfplumber` and `openpyxl` (`winget install Git.Git`, `pip install pdfplumber openpyxl` if missing). Nothing else is needed. If `python` opens the Microsoft Store, run the scripts with `py` instead; the double-click files in `start\` already prefer `py`.
 
 ## 2. Which case this is
 
@@ -37,5 +37,14 @@ Tell them in two lines their daily routine (README, "Every day"), and that doubl
 
 - Never edit `PnL Record.xlsx` with openpyxl or anything that rewrites the workbook: the toolkit edits it through `tools\xlsxpatch.py` only (README, "For Claude").
 - Never delete or rename a statement PDF or the `.pst`.
-- Never commit or push to the repository: changes to the toolkit come from its owner.
 - The account summary at the top of the `Statement` sheet is laid out for a daily note to a manager. Leave it unless they ask for a different layout.
+
+## Changing the toolkit
+
+Everyone who uses the toolkit may improve it; every change reaches everyone through `start\0 Get latest.cmd`. Only when the person asks for a change:
+
+1. `git pull --ff-only`, then a branch: `git switch -c <name>/<what>`. Never edit on `main`: a local change there makes `0 Get latest` refuse to update.
+2. Make the change and check it on this folder's own record (`python tools\update_record.py --dry` first; a change to the Statement sheet: `python tools\patch_statement.py`, then open the record in Excel). After changing the Statement's layout or style, run `python tools\make_template.py` so new setups get it.
+3. The repository is **public**: nothing committed may hold a figure from a statement, an account number, a name or a file path from this PC. Check `git diff --cached` for them before every commit; `.gitignore` already keeps the statements, `data\`, `Backups\` and the record out.
+4. Push the branch and open a pull request on GitHub saying what changed and why. The person needs write access, given by the repository's owner (Settings > Collaborators); Git asks them to sign in to GitHub the first time.
+5. Merge it once it is checked, then `git switch main` and `git pull --ff-only`. Never force-push and never rewrite `main`.

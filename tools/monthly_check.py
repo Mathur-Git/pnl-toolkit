@@ -10,7 +10,7 @@ carry_ins(): TC the daily statements lack (an account missing from them for part
 taken from the monthly statements, so the journal's TC is complete:
   within a month: the monthly TC less the daily sum;
   before an account's first monthly statement: its year-to-date commission and fees less that
-  month's TC.
+  month's TC and less the daily TC already recorded earlier that year.
 Both dated that month end: the same row as the account's first P&L, which (the account value being
 cumulative) also carries everything before it. Zero when the daily statements cover everything.
 """
@@ -40,9 +40,15 @@ def carry_ins(roles=None, days=None, monthly=None):
             if role not in seen:
                 seen.add(role)
                 ytd = -(m.get("YTD COMMISSIONS", 0.0) + m.get("YTD FEES", 0.0))
-                if ytd - mtc > 0.005:
-                    amount += ytd - mtc
-                    why.append(f"before {end[:7]}: year to date {ytd:,.2f} less the month {mtc:,.2f}")
+                # less what the daily statements already hold for the year before this month: the
+                # monthly statements can start later than the dailies (a colleague's, 2026-11-18:
+                # monthlies from June, dailies from February), and those months must not count twice
+                earlier = sum(d[tcol[role]] or 0 for d in days
+                              if d["date"][:4] == end[:4] and d["date"][:7] < end[:7])
+                if ytd - mtc - earlier > 0.005:
+                    amount += ytd - mtc - earlier
+                    why.append(f"before {end[:7]}: year to date {ytd:,.2f} less the month {mtc:,.2f}"
+                               + (f" less daily {earlier:,.2f}" if earlier > 0.005 else ""))
             if mtc - dsum > 0.005:
                 amount += mtc - dsum
                 why.append(f"in {end[:7]}: month {mtc:,.2f} less daily {dsum:,.2f}")
