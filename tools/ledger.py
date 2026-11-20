@@ -25,7 +25,8 @@ Tables (dates ISO, amounts as the statement states them: costs and losses negati
 Checks before a day is stored (a failure keeps it out and says why):
     each fill block: its parts = its TOTAL COMM AND FEE; its fills' bought / sold = its n* counts
     each account: blocks + adjustments = TOTAL COMMISSION AND FEES; realized lines = GROSS PROFIT
-      OR LOSS; open positions = OPEN TRADE EQUITY; beginning + fees + gross = ending balance;
+      OR LOSS; open positions = OPEN TRADE EQUITY; beginning + fees + gross + cash amounts
+      (transfers in or out) = ending balance;
       ending + open trade equity = total equity = account value at market (a figure read off the
       wrong row breaks this); the three currency columns agree
     the date inside the PDF = the date in its file name
@@ -293,9 +294,10 @@ def parse_daily(path):
         if abs(ote - s.get("OPEN TRADE EQUITY", 0.0)) > 0.005:
             problems.append(f"{a}: positions {ote:.2f} vs open trade equity {s.get('OPEN TRADE EQUITY', 0.0):.2f}")
         if "ENDING BALANCE" in s:
-            flow = s.get("BEGINNING BALANCE", 0.0) + s.get("TOTAL COMMISSION AND FEES", 0.0) + s.get("GROSS PROFIT OR LOSS", 0.0)
+            flow = (s.get("BEGINNING BALANCE", 0.0) + s.get("TOTAL COMMISSION AND FEES", 0.0)
+                    + s.get("GROSS PROFIT OR LOSS", 0.0) + s.get("CASH AMOUNTS", 0.0))
             if abs(flow - s["ENDING BALANCE"]) > 0.005:
-                problems.append(f"{a}: beginning + fees + gross {flow:.2f} vs ending {s['ENDING BALANCE']:.2f}")
+                problems.append(f"{a}: beginning + fees + gross + cash {flow:.2f} vs ending {s['ENDING BALANCE']:.2f}")
         if "ACCOUNT VALUE AT MARKET" in s:
             te = s.get("ENDING BALANCE", 0.0) + s.get("OPEN TRADE EQUITY", 0.0)
             if abs(te - s.get("TOTAL EQUITY", te)) > 0.005 or abs(te - s["ACCOUNT VALUE AT MARKET"]) > 0.005:
@@ -514,8 +516,10 @@ def daily_rows():
         row = {"date": day,
                "main_acct_value": rates.get("ACCOUNT VALUE AT MARKET"),
                "main_init_margin": rates.get("INITIAL MARGIN REQUIREMENT", 0.0),
+               "main_cash": rates.get("CASH AMOUNTS", 0.0),  # transfers in (+) or out (-): not P&L
                "vix_acct_value": vix.get("ACCOUNT VALUE AT MARKET"),
                "vix_init_margin": vix.get("INITIAL MARGIN REQUIREMENT", 0.0) if vix else None,
+               "vix_cash": vix.get("CASH AMOUNTS", 0.0),
                "tc_rates": round(-rates.get("TOTAL COMMISSION AND FEES", 0.0), 2),
                "tc_vix": round(-vix.get("TOTAL COMMISSION AND FEES", 0.0), 2)}
         for p in PRODUCT_ORDER:

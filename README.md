@@ -73,7 +73,7 @@ What the ledger is for: reconciling positions, seeing what was traded each day a
 A statement is stored only if all of these hold:
 
 - each fill group: its commission plus fees equals its own "TOTAL COMM AND FEE"; its fills' bought and sold quantities equal its own counts; and each side's average fill price equals the statement's own average buy or sell price. Buy and sell are read from the column a quantity sits in, so this confirms every fill's side;
-- each account: the fill groups plus adjustments equal "TOTAL COMMISSION AND FEES"; the closing lines add up to "GROSS PROFIT OR LOSS"; the open positions add up to "OPEN TRADE EQUITY"; beginning balance plus fees plus gross P&L equals the ending balance; ending balance plus open trade equity equals account value at market (a figure read off the wrong row breaks this); the three currency columns agree;
+- each account: the fill groups plus adjustments equal "TOTAL COMMISSION AND FEES"; the closing lines add up to "GROSS PROFIT OR LOSS"; the open positions add up to "OPEN TRADE EQUITY"; beginning balance plus fees plus gross P&L plus "CASH AMOUNTS" (a transfer in or out, such as a "ZeroOut - CASH TRANSFER" journal entry) equals the ending balance; ending balance plus open trade equity equals account value at market (a figure read off the wrong row breaks this); the three currency columns agree;
 - the date inside the PDF matches its file name.
 
 A day with two copies: both are read; they must agree on account values, and the copy that states the margin is used (one 9 Jan 2026 copy leaves it out).
@@ -87,10 +87,10 @@ The journal's columns (sheet `IMR+PnL`, one row a weekday, dated through 31 Dec 
 | Column | Holds |
 |---|---|
 | B, C | day, date |
-| D, E | rates account value at market (cumulative P&L), initial margin |
-| F | Daily PnL: D minus the nearest earlier row with a D |
+| D, E | rates account value at market (cumulative P&L plus any cash transferred in or out), initial margin |
+| F | Daily PnL: D minus the nearest earlier row with a D, less that day's cash transfer, which the formula shows (`=D65-D64-1000` for 1,000 transferred in): a transfer is not P&L |
 | G, H | VIX account value, margin (blank when the VIX account is not on the statement; margin 0 when it is but holds nothing) |
-| I | VIX Daily PnL, as F over G |
+| I | VIX Daily PnL: G minus the nearest earlier row with a G. A cash transfer in the VIX account is not taken out (the Statement reads VIX P&L from G); the update prints a `!!` line if one ever appears |
 | J:L | SR3 TC, SR1 TC, ZQ TC: the rates account's fills |
 | M | VX TC: everything the VIX account paid |
 | N | Rates TC Adj: the rates account's refunds or charges. Rates TC = J+K+L+N |

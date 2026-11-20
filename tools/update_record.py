@@ -4,7 +4,8 @@ source of truth: every stored day is written onto its journal row, overwriting w
 
     D  A/c Val        rates account value at market (cumulative P&L)
     E  Margin         rates account initial margin
-    F  Daily PnL      =D(this row) - D(nearest earlier row with a D)
+    F  Daily PnL      =D(this row) - D(nearest earlier row with a D), less the day's CASH AMOUNTS
+                      (a transfer in or out of the account is not P&L)
     G  VIX A/c Val    VIX account value at market (only when the VIX account is on the statement)
     H  VIX Margin     VIX initial margin (0 when on the statement with no margin line)
     I  VIX Daily PnL  =G(this row) - G(nearest earlier row with a G)
@@ -199,12 +200,14 @@ def main(dry):
             if vals.get(r) is None:
                 continue
             p = next((q for q in range(r - 1, FIRST_ROW - 1, -1) if vals.get(q) is not None), None)
+            cash = by_date[written[r]]["main_cash"] if out == "F" else 0
+            back = ("+" if cash < 0 else "-") + fmt(abs(cash)) if cash else ""  # a transfer is not P&L
             if out == "F":
                 prev[r] = p
             if p:
-                put_formula(f"{out}{r}", f"{src}{r}-{src}{p}")
+                put_formula(f"{out}{r}", f"{src}{r}-{src}{p}{back}")
             elif out == "F":
-                put_formula(f"{out}{r}", f"{src}{r}")
+                put_formula(f"{out}{r}", f"{src}{r}{back}")
 
     # ---- report: journal
     new_rows = {r for r, d in written.items() if d in new}
@@ -215,12 +218,15 @@ def main(dry):
               f"{short(written[max(new_rows)])}). Latest:")
     for r in sorted(new_rows)[-1:] if len(new_rows) > 5 else sorted(new_rows):
         d = by_date[written[r]]
-        pnl = d_val[r] - (d_val[prev[r]] if prev.get(r) else 0)
+        pnl = d_val[r] - (d_val[prev[r]] if prev.get(r) else 0) - d["main_cash"]
         tc = sum(d[k] for k in ("cost_SR3", "cost_SR1", "cost_ZQ", "cost_VX", "cost_ADJ"))
         n = sum(d[f"vol_{p}"] for p in ledger.PRODUCT_ORDER)
         vix = f", VIX value {d['vix_acct_value']:,.2f}" if d["vix_acct_value"] is not None else ""
         print(f"Journal {short(written[r])}: A/c Val {d['main_acct_value']:,.2f}, Daily PnL {pnl:+,.2f}"
               f"{vix}, TC {tc:,.2f}, {n:,} contracts.")
+    for d in days:  # the Statement takes VIX P&L from G levels, so a VIX transfer still counts there
+        if d["vix_cash"]:
+            print(f"  !! {short(d['date'])}: VIX account cash transfer {d['vix_cash']:+,.2f} is counted as VIX P&L.")
     if other:
         print(f"Journal: {len(other)} other cell(s) changed (details in data\\run_log.txt):")
         for ref, old, nv in other[:8]:
